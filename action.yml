@@ -34,8 +34,10 @@ runs:
     - ${{ inputs.repo }}
     - ${{ inputs.version }}
     - ${{ inputs.file }}
-    - ${{ inputs.target }}
     - ${{ inputs.token }}
+    - ${{ inputs.release_repo }}
+    - ${{ inputs.release_version }}
+    - ${{ inputs.release_target }}
 
 outputs:
   version:

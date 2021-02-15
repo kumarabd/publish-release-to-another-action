@@ -73,7 +73,7 @@ echo "::set-output name=version::$TAG_VERSION"
 TARGET_API_URL="https://$GITHUB_API_URL/repos/$TARGET_REPO"
 RELEASE_URL=$TARGET_API_URL/releases
 
-curl -i \
+curl \
   -X POST \
   -H "Authorization: token $TOKEN" \
   -H "Accept: application/vnd.github.v3+json" \
@@ -85,9 +85,8 @@ curl -i \
 RELEASE_UPLOAD_URL=$(curl -H "Authorization: token $TOKEN" $RELEASE_URL?tag_name=${INPUT_RELEASE_VERSION} | jq -r ".[].upload_url")
 pattern="{?"
 RELEASE_ASSET_URL="${RELEASE_UPLOAD_URL%$pattern*}?name=$INPUT_RELEASE_TARGET"
-echo $RELEASE_ASSET_URL
 
-curl -i \
+curl \
   -X POST \
   -H "Content-Type: $ASSET_TYPE" \
   -H "Authorization: token $TOKEN" \
