@@ -1,5 +1,7 @@
 #!/bin/bash
 
+GITHUB_API_URL="api.github.com"
+
 if [[ -z "$INPUT_FILE" ]]; then
   echo "Missing file input in the action"
   exit 1
