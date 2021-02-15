@@ -13,13 +13,19 @@ inputs:
   file:
     description: 'name of the file in the release to download'
     required: true
-  target:
-    description: 'name of the target file path'
-    required: false
   token:
     description: 'optional Personal Access Token to access external repository'
     required: false
     default: ''
+  release_repo:
+    description: 'org/repo to release to'
+    required: false
+  release_version:
+    description: 'version of the release to be made'
+    required: false
+  release_target:
+    description: 'name of the target file path of the release'
+    required: false
 
 runs:
   using: 'docker'

@@ -15,6 +15,11 @@ if ! [[ -z ${INPUT_REPO} ]]; then
   REPO=$INPUT_REPO
 fi
 
+TARGET_REPO=$GITHUB_REPOSITORY
+if ! [[ -z ${INPUT_RELEASE_REPO} ]]; then
+  TARGET_REPO=$INPUT_RELEASE_REPO
+fi
+
 # Optional target file path
 TARGET=$INPUT_FILE
 if ! [[ -z ${INPUT_TARGET} ]]; then
@@ -43,6 +48,7 @@ if [[ "$MESSAGE" == "Not Found" ]]; then
 fi
 
 ASSET_ID=$(echo $RELEASE_DATA | jq -r ".[].assets | map(select(.name == \"${INPUT_FILE}\"))[0].id")
+ASSET_TYPE=$(echo $RELEASE_DATA | jq -r ".[].assets | map(select(.name == \"${INPUT_FILE}\"))[0].content_type")
 TAG_VERSION=$(echo $RELEASE_DATA | jq -r ".[].tag_name" | sed -e "s/^v//" | sed -e "s/^v.//")
 
 if [[ -z "$ASSET_ID" ]]; then
@@ -57,6 +63,32 @@ curl \
   -H "Accept: application/octet-stream" \
   "$API_URL/releases/assets/$ASSET_ID" \
   --create-dirs \
-  -o ${TARGET}
+  -o ${INPUT_RELEASE_TARGET}
 
 echo "::set-output name=version::$TAG_VERSION"
+
+# Release process
+TARGET_API_URL="https://$GITHUB_API_URL/repos/$TARGET_REPO"
+RELEASE_URL=$TARGET_API_URL/releases
+
+curl -i \
+  -X POST \
+  -H "Authorization: token $TOKEN" \
+  -H "Accept: application/vnd.github.v3+json" \
+  "$RELEASE_URL" \
+  -d '{"tag_name":"'$INPUT_RELEASE_VERSION'","body":""}'
+
+
+# Upload artifact
+RELEASE_UPLOAD_URL=$(curl -H "Authorization: token $TOKEN" $RELEASE_URL?tag_name=${INPUT_RELEASE_VERSION} | jq -r ".[].upload_url")
+pattern="{?"
+RELEASE_ASSET_URL="${RELEASE_UPLOAD_URL%$pattern*}?name=$INPUT_RELEASE_TARGET"
+echo $RELEASE_ASSET_URL
+
+curl -i \
+  -X POST \
+  -H "Content-Type: $ASSET_TYPE" \
+  -H "Authorization: token $TOKEN" \
+  -H "Accept: application/vnd.github.v3+json" \
+  --data-binary @${INPUT_RELEASE_TARGET} \
+  "$RELEASE_ASSET_URL"
